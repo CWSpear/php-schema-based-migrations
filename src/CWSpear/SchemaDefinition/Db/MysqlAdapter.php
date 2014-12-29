@@ -7,7 +7,7 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @var PDO
      */
-    protected $db;
+    public $db;
 
     /**
      * {@inheritdoc}
@@ -58,8 +58,8 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
                 'default'   => $row['Default'] ?: null,
                 'nullable'  => $row['Null'] === 'YES' ?: null,
                 'identity'  => $row['Key'] === 'PRI' ?: null,
-                'precision' => isset($data['precision']) ? intval($data['precision']) : null,
                 'scale'     => isset($data['scale']) ? intval($data['scale']) : null,
+                'precision' => isset($data['precision']) ? intval($data['precision']) : null,
                 'comment'   => $row['Comment'] ?: null,
                 'unsigned'  => $data['unsigned'] ?: null,
                 'update'    => null,
@@ -129,29 +129,18 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
     protected function extractData($typeCol)
     {
         preg_match('/([a-z]+)\(?(\d+) ?,?(\d+)?\)? ?(unsigned)?/', $typeCol, $matches);
-        try {
-            list(, $type) = $matches;
-            list(, $type, $num1) = $matches;
-            list(, $type, $num1, $num2) = $matches;
-            list(, $type, $num1, $num2, $unsigned) = $matches;
-        } catch (\Exception $e) {
-            $type = isset($type) ? $type : $typeCol;
-            $num1 = isset($num1) ? $num1 : null;
-            $num2 = isset($num2) ? $num2 : null;
-            $unsigned = isset($unsigned) ? $unsigned : null;
-        }
+        $type = isset($matches[1]) ? $matches[1] : $typeCol;
+        $num1 = isset($matches[2]) ? $matches[2] : null;
+        $num2 = isset($matches[3]) ? $matches[3] : null;
+        $unsigned = isset($matches[4]) ? $matches[4] : null;
 
         $ret = ['type' => $this->normalizeFieldType($type)];
 
         if ($num2) {
-            if ($type === 'decision' || $type === 'numeric') {
+            if (in_array($type, ['double', 'float', 'decimal', 'numeric'])) {
                 $ret['limit'] = null;
-                $ret['precision'] = $num1;
-                $ret['scale'] = $num2;
-            } else {
-                $ret['limit'] = $num1;
                 $ret['precision'] = $num2;
-                $ret['scale'] = null;
+                $ret['scale'] = $num1;
             }
         } else {
             $ret['limit'] = $num1 ?: null;

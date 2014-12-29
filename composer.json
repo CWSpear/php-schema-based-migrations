@@ -7,7 +7,9 @@
     "require-dev": {
         "phpspec/phpspec": "~2.1",
         "phpspec/nyan-formatters": "1.*",
-        "codeception/codeception": "~2.0"
+        "codeception/codeception": "~2.0",
+        "henrikbjorn/phpspec-code-coverage": "~1.0",
+        "ext-xdebug": ">=2.1.4"
     },
     "autoload": {
         "psr-4": {

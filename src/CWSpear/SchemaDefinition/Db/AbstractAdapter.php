@@ -4,12 +4,12 @@
 use PDOException;
 use PDO;
 
-class AbstractAdapter
+abstract class AbstractAdapter
 {
     /**
      * @var PDO
      */
-    protected $db;
+    public $db;
 
     /**
      * Wrapper to handle errors and preparing.

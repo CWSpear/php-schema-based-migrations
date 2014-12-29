@@ -3,6 +3,9 @@
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
+/**
+ * @mixin MysqlAdapter
+ */
 class MysqlAdapterSpec extends ObjectBehavior
 {
     function let()
@@ -56,7 +59,7 @@ class MysqlAdapterSpec extends ObjectBehavior
             ],
             'float' => [
                 'type'      => 'float',
-                'limit'     => 12,
+                'scale'     => 12,
                 'precision' => 10,
             ]
         ]);
@@ -103,5 +106,24 @@ class MysqlAdapterSpec extends ObjectBehavior
     {
         $this->hasTable('table')->shouldReturn(false);
         $this->hasTable('diverse')->shouldReturn(true);
+    }
+
+    function it_should_handle_bad_queries()
+    {
+        $this->shouldThrow('\PDOException')->duringQuery('BANANAS ARE GOOD');
+    }
+
+    function it_should_handle_bindings(\PDO $db, \PDOStatement $statement)
+    {
+        $sql = 'SELECT * FROM diverse WHERE id = ?';
+        $bindings = [1];
+
+        $this->db = $db;
+
+        $db->prepare($sql)->shouldBeCalled()->willReturn($statement);
+        $statement->execute($bindings)->shouldBeCalled()->willReturn($statement);
+        $statement->fetchAll()->shouldBeCalled();
+
+        $this->query($sql, $bindings);
     }
 }
