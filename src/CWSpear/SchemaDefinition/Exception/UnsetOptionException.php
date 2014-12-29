@@ -1,3 +1,3 @@
-<?php namespace CWSpear\Different\Exceptions;
+<?php namespace CWSpear\Different\Exception;
 
 class UnsetOptionException extends \Exception {}

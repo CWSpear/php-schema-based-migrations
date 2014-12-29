@@ -14,9 +14,6 @@
     "autoload": {
         "psr-4": {
             "CWSpear\\": "src/CWSpear"
-        },
-        "psr-0": {
-            "": "src"
         }
     },
     "minimum-stability": "stable"

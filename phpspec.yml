@@ -5,3 +5,4 @@ formatter.name: nyan.crab
 code_coverage:
     blacklist:
         - src/CWSpear/SchemaDefinition/Console
+        - src/CWSpear/SchemaDefinition/Exception
