@@ -1,6 +1,4 @@
-<?php
-
-namespace spec\CWSpear\SchemaDefinition\Parser;
+<?php namespace spec\CWSpear\SchemaDefinition\Parser;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;

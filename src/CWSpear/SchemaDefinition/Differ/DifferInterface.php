@@ -3,6 +3,8 @@
 
 interface DifferInterface
 {
+    const DROP_TABLE = 100;
+
     /**
      * @param array $db   The schema as it exists in the DB
      * @param array $file The schema as it exists in the files

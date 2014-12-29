@@ -40,7 +40,7 @@ class Differ implements DifferInterface
      */
     public function diff(array $origin, array $destination)
     {
-        $difference = array();
+        $difference = [];
         foreach ($origin as $key => $value) {
             if (is_array($value)) {
                 if (!isset($destination[$key]) || !is_array($destination[$key])) {
