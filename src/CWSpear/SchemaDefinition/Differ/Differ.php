@@ -55,6 +55,7 @@ class Differ implements DifferInterface
                 $difference[$key] = $value;
             }
         }
+
         return $difference;
     }
 }

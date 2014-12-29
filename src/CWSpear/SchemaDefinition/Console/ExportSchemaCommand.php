@@ -12,8 +12,8 @@ class ExportSchemaCommand extends AbstractCommand
         parent::configure();
 
         $this->setName('export')
-            ->setDescription('Create schema files based on the current state of the database.')
-            ->addOption('--environment', '-e', InputOption::VALUE_OPTIONAL, 'The target environment');
+             ->setDescription('Create schema files based on the current state of the database.')
+             ->addOption('--environment', '-e', InputOption::VALUE_OPTIONAL, 'The target environment');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)

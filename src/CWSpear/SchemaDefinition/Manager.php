@@ -12,8 +12,8 @@ class Manager
 
     public function __construct(AdapterInterface $adapter, FilesystemInterface $file)
     {
-        $this->adapter   = $adapter;
-        $this->file      = $file;
+        $this->adapter = $adapter;
+        $this->file    = $file;
     }
 
 //    public static function fromConfig(array $config)

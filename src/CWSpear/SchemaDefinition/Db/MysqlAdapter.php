@@ -93,7 +93,7 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
                 $indexes[$row['Key_name']] = ['columns' => []];
             }
             $indexes[$row['Key_name']]['columns'][] = strtolower($row['Column_name']);
-            $indexes[$row['Key_name']]['unique'] = !$row['Non_unique'];
+            $indexes[$row['Key_name']]['unique']    = !$row['Non_unique'];
         }
 
         return array_values($indexes);
@@ -104,7 +104,7 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getForeignKeys($table)
     {
-        $sql  = 'SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ';
+        $sql = 'SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ';
         $sql .= 'FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND TABLE_NAME = ';
         $sql .= "'{$table}'";
 
@@ -129,23 +129,23 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
     protected function extractData($typeCol)
     {
         preg_match('/([a-z]+)\(?(\d+) ?,?(\d+)?\)? ?(unsigned)?/', $typeCol, $matches);
-        $type = isset($matches[1]) ? $matches[1] : $typeCol;
-        $num1 = isset($matches[2]) ? $matches[2] : null;
-        $num2 = isset($matches[3]) ? $matches[3] : null;
+        $type     = isset($matches[1]) ? $matches[1] : $typeCol;
+        $num1     = isset($matches[2]) ? $matches[2] : null;
+        $num2     = isset($matches[3]) ? $matches[3] : null;
         $unsigned = isset($matches[4]) ? $matches[4] : null;
 
         $ret = ['type' => $this->normalizeFieldType($type)];
 
         if ($num2) {
             if (in_array($type, ['double', 'float', 'decimal', 'numeric'])) {
-                $ret['limit'] = null;
+                $ret['limit']     = null;
                 $ret['precision'] = $num2;
-                $ret['scale'] = $num1;
+                $ret['scale']     = $num1;
             }
         } else {
-            $ret['limit'] = $num1 ?: null;
+            $ret['limit']     = $num1 ?: null;
             $ret['precision'] = null;
-            $ret['scale'] = null;
+            $ret['scale']     = null;
         }
 
         $ret['unsigned'] = $unsigned ?: null;
@@ -164,6 +164,7 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
     {
         if (preg_match(' /int$/', $type)) {
             $type .= 'eger';
+
             return $type;
         }
 
