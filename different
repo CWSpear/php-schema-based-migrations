@@ -1,0 +1,11 @@
+#! /usr/bin/env php
+
+<?php require 'vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+
+$app = new Application('PHP Schema Based Migrations', '0.1.0');
+
+// $app->add(new ExportSchemaCommand);
+
+$app->run();

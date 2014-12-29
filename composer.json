@@ -1,0 +1,21 @@
+{
+    "require": {
+        "symfony/console": "~2.6",
+        "symfony/filesystem": "~2.6",
+        "symfony/yaml": "~2.6"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "~2.1",
+        "phpspec/nyan-formatters": "1.*",
+        "codeception/codeception": "~2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CWSpear\\": "src/CWSpear"
+        },
+        "psr-0": {
+            "": "src"
+        }
+    },
+    "minimum-stability": "stable"
+}
