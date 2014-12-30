@@ -2,8 +2,8 @@
 vendor/
 composer.lock
 
-/spec/fixtures/actual/
-!spec/fixtures/actual/.gitkeep
+/tests/_fixtures/actual/
+!/tests/_fixtures/actual/.gitkeep
 
 /coverage/
 tests/_output/*
