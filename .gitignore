@@ -6,3 +6,4 @@ composer.lock
 !spec/fixtures/actual/.gitkeep
 
 /coverage/
+tests/_output/*

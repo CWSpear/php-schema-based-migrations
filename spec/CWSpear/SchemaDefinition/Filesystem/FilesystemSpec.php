@@ -18,8 +18,8 @@ class FilesystemSpec extends ObjectBehavior
         $this->beConstructedWith(
             $parser,
             $generator,
-            './spec/fixtures/expected/schemas',
-            './spec/fixtures/expected/migrations'
+            './tests/_fixtures/expected/schemas',
+            './tests/_fixtures/expected/migrations'
         );
 
         $this->filesystem = $filesystem;
@@ -39,7 +39,7 @@ class FilesystemSpec extends ObjectBehavior
 
         $parser->serialize($schema)->shouldBeCalled()->willReturn($schemaStr);
         $parser->getExt()->shouldBeCalled()->willReturn('json');
-        $filesystem->dumpFile('./spec/fixtures/expected/schemas/banana.json', $schemaStr);
+        $filesystem->dumpFile('./tests/_fixtures/expected/schemas/banana.json', $schemaStr);
 
         $this->saveSchema($table, $schema);
     }
@@ -54,7 +54,7 @@ class FilesystemSpec extends ObjectBehavior
         $generator->generateName()->shouldBeCalled()->willReturn($generatedName);
         $generator->generateMigration($table, $differ)->shouldBeCalled()->willReturn($dummyStr);
 
-        $filesystem->dumpFile("./spec/fixtures/expected/migrations/{$generatedName}.php", $dummyStr)->shouldBeCalled();
+        $filesystem->dumpFile("./tests/_fixtures/expected/migrations/{$generatedName}.php", $dummyStr)->shouldBeCalled();
 
         $this->saveMigration($table, $differ);
     }

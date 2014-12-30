@@ -1,6 +1,6 @@
 <?php namespace CWSpear\SchemaDefinition\Exception;
 
-class FileNotFoundException extends \Exception
+class UnsupportedAdapterException extends \Exception
 {
-    
+
 }

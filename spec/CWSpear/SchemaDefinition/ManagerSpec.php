@@ -12,6 +12,18 @@ use Prophecy\Argument;
  */
 class ManagerSpec extends ObjectBehavior
 {
+    protected $baseConfig = [
+        'adapter'    => 'mysql',
+        'host'       => '127.0.0.1',
+        'username'   => 'root',
+        'password'   => 'root',
+        'database'   => 'schema_test',
+        'format'     => 'json',
+        'schemas'    => 'spec/fixtures/actual/schemas',
+        'migrations' => 'spec/fixtures/actual/migrations',
+        'generator'  => 'laravel',
+    ];
+
     function let(AdapterInterface $adapter, FilesystemInterface $file)
     {
         $this->beConstructedWith($adapter, $file);
@@ -22,19 +34,29 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType('CWSpear\SchemaDefinition\Manager');
     }
 
-//    function it_should_be_able_to_be_initalized_via_a_config()
-//    {
-//        Manager::fromConfig([
-//            'driver'     => 'mysql',
-//            'host'       => ',',
-//            'username'   => 'root',
-//            'password'   => 'root',
-//            'database'   => 'schema_test',
-//            'format'     => 'json',
-//            'schemas'    => 'spec/fixtures/actual/schemas',
-//            'migrations' => 'spec/fixtures/actual/migrations',
-//        ])->shouldHaveType('CWSpear\SchemaDefinition\Manager');
-//    }
+    function it_should_be_able_to_be_initalized_via_a_config()
+    {
+        $this::fromConfig($this->baseConfig)->shouldHaveType('CWSpear\SchemaDefinition\Manager');
+    }
+
+    function it_should_throw_when_using_invalid_options()
+    {
+        $config = array_merge($this->baseConfig, ['adapter' => 'banana']);
+        $this->shouldThrow('CWSpear\SchemaDefinition\Exception\UnsupportedAdapterException')->duringFromConfig($config);
+
+        $config = array_merge($this->baseConfig, ['format' => 'banana']);
+        $this->shouldThrow('CWSpear\SchemaDefinition\Exception\UnsupportedFormatException')->duringFromConfig($config);
+
+        $config = array_merge($this->baseConfig, ['generator' => 'banana']);
+        $this->shouldThrow('CWSpear\SchemaDefinition\Exception\UnsupportedGeneratorException')->duringFromConfig($config);
+    }
+    
+    function it_should_throw_when_config_is_invalid()
+    {
+        $config = $this->baseConfig;
+        unset($config['generator']);
+        $this->shouldThrow(new \CWSpear\SchemaDefinition\Exception\InvalidConfigException('Missing required option: "generator".'))->duringAssertValidConfig($config);
+    }
 
     function it_should_get_a_list_of_tables_in_the_database(AdapterInterface $adapter)
     {
@@ -89,7 +111,7 @@ class ManagerSpec extends ObjectBehavior
 
     function it_should_save_a_generated_schema(FilesystemInterface $file)
     {
-        $table = 'banana';
+        $table  = 'banana';
         $schema = [
             'fields'      => 'fields',
             'foreignKeys' => 'foreignKeys',

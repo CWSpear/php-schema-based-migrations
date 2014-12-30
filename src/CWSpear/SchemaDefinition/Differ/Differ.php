@@ -51,7 +51,7 @@ class Differ implements DifferInterface
             }
         }
 
-        return $this->added = $added;
+        return $added;
     }
 
     /**
@@ -59,7 +59,7 @@ class Differ implements DifferInterface
      */
     public function getRemoved()
     {
-        // local copy of up (doesn't really matter where we start)
+        // local copy of down
         $removed = $this->down;
 
         foreach ($removed[self::FIELDS] as $col => $options) {
@@ -70,7 +70,7 @@ class Differ implements DifferInterface
             }
         }
 
-        return $this->removed = $removed;
+        return $removed;
     }
 
     /**

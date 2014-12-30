@@ -3,9 +3,10 @@
 <?php require 'vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
+use CWSpear\SchemaDefinition\Console\ExportSchemaCommand;
 
 $app = new Application('PHP Schema Based Migrations', '0.1.0');
 
-// $app->add(new ExportSchemaCommand);
+$app->add(new ExportSchemaCommand);
 
 $app->run();

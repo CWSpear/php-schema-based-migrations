@@ -1,0 +1,9 @@
+adapter: mysql
+host: '127.0.0.1'
+username: root
+password: root
+database: schema_test
+format: json
+schemas: ./tests/_fixtures/actual/schemas
+migrations: ./tests/_fixtures/actual/migrations
+generator: laravel
