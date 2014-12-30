@@ -62,8 +62,8 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
                 'precision' => isset($data['precision']) ? intval($data['precision']) : null,
                 'comment'   => $row['Comment'] ?: null,
                 'unsigned'  => $data['unsigned'] ?: null,
-                'update'    => null,
-                'after'     => null,
+                'update'    => null, // NYI
+                'after'     => null, // after is not taken into consideration on an export and is not relevant
             ], function ($item) {
                 return !is_null($item);
             });
@@ -120,6 +120,24 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function hasColumn($column, $table)
+    {
+        // TODO: caching?
+        return in_array($column, array_keys($this->getFields($table)));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasTable($table)
+    {
+        // TODO: caching?
+        return in_array($table, $this->getTables());
+    }
+
+    /**
      * Tbe Type column in SHOW COLUMNS has info on a number
      * of options we use and this method extracts those to an array
      *
@@ -173,23 +191,5 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
         }
 
         return $type;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function hasColumn($column, $table)
-    {
-        // TODO: caching?
-        return in_array($column, array_keys($this->getFields($table)));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function hasTable($table)
-    {
-        // TODO: caching?
-        return in_array($table, $this->getTables());
     }
 }

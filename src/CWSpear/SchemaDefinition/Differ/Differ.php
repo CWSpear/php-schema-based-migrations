@@ -1,13 +1,38 @@
 <?php namespace CWSpear\SchemaDefinition\Differ;
 
+use Exception;
+
 class Differ implements DifferInterface
 {
     /**
+     * @var array
+     */
+    protected $db;
+
+    /**
+     * @var array
+     */
+    protected $file;
+
+    /**
+     * @var array
+     */
+    protected $up;
+
+    /**
+     * @var array
+     */
+    protected $down;
+
+    /**
      * {@inheritdoc}
      */
-    public function __construct(array $db, array $file)
+    public function __construct(array $file, array $db)
     {
-        // TODO: Implement __construct() method.
+        $this->db   = $db;
+        $this->file = $file;
+        $this->up   = $this->diff($file, $db);
+        $this->down = $this->diff($db, $file);
     }
 
     /**
@@ -15,7 +40,18 @@ class Differ implements DifferInterface
      */
     public function getAdded()
     {
-        // TODO: Implement getAdded() method.
+        // local copy of up
+        $added = $this->up;
+
+        foreach ($added[self::FIELDS] as $col => $options) {
+            // cols that exist ONLY in the up array
+            // are columns that are being added
+            if (array_key_exists($col, $this->down[self::FIELDS])) {
+                unset($added[self::FIELDS][$col]);
+            }
+        }
+
+        return $this->added = $added;
     }
 
     /**
@@ -23,36 +59,79 @@ class Differ implements DifferInterface
      */
     public function getRemoved()
     {
-        // TODO: Implement getRemoved() method.
+        // local copy of up (doesn't really matter where we start)
+        $removed = $this->down;
+
+        foreach ($removed[self::FIELDS] as $col => $options) {
+            // cols that exist ONLY in the down array
+            // are columns that are being removed
+            if (array_key_exists($col, $this->up[self::FIELDS])) {
+                unset($removed[self::FIELDS][$col]);
+            }
+        }
+
+        return $this->removed = $removed;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAltered()
+    public function getAlteredUp()
     {
-        // TODO: Implement getAltered() method.
+        // local copy of up
+        $alteredUp = $this->up;
+
+        foreach ($alteredUp[self::FIELDS] as $col => $options) {
+            // cols that are in both up and down
+            // are columns that are being altered
+            if (!array_key_exists($col, $this->down[self::FIELDS])) {
+                // so if it does not exist in the other one,
+                // we don't want it as it's not "altered"
+                unset($alteredUp[self::FIELDS][$col]);
+            }
+        }
+
+        return $alteredUp;
     }
 
     /**
      * {@inheritdoc}
-     * @see http://php.net/manual/en/function.array-diff-assoc.php#111675
+     */
+    public function getAlteredDown()
+    {
+        // local copy of down
+        $alteredDown = $this->down;
+
+        foreach ($alteredDown[self::FIELDS] as $col => $options) {
+            // cols that are in both up and down
+            // are columns that are being altered
+            if (!array_key_exists($col, $this->up[self::FIELDS])) {
+                // so if it does not exist in the other one,
+                // we don't want it as it's not "altered"
+                unset($alteredDown[self::FIELDS][$col]);
+            }
+        }
+
+        return $alteredDown;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function diff(array $origin, array $destination)
     {
         $difference = [];
-        foreach ($origin as $key => $value) {
-            if (is_array($value)) {
-                if (!isset($destination[$key]) || !is_array($destination[$key])) {
-                    $difference[$key] = $value;
+        foreach ($origin as $type => $value) {
+            foreach ($value as $k => $v) {
+                if (!isset($destination[$type][$k])) {
+                    $difference[$type][$k] = $v;
                 } else {
-                    $newDiff = $this->diff($value, $destination[$key]);
-                    if (!empty($newDiff)) {
-                        $difference[$key] = $newDiff;
+                    $diff  = array_diff($v, $destination[$type][$k]);
+                    $diff2 = array_diff($destination[$type][$k], $v);
+                    if (!empty($diff) || !empty($diff2)) {
+                        $difference[$type][$k] = $v;
                     }
                 }
-            } elseif (!array_key_exists($key, $destination) || $destination[$key] !== $value) {
-                $difference[$key] = $value;
             }
         }
 
