@@ -1,11 +1,12 @@
 <?php namespace CWSpear\SchemaDefinition\Console;
 
 use CWSpear\SchemaDefinition\Manager;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ExportSchemaCommand extends AbstractCommand
+class ExportSchemaCommand extends Command
 {
     public function configure()
     {
@@ -17,7 +18,7 @@ class ExportSchemaCommand extends AbstractCommand
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $manager = Manager::fromConfig($this->loadConfig($input));
+        $manager = Manager::fromInput($input);
 
         $manager->export(Manager::splitTableList($input->getOption('tables')), $output);
     }

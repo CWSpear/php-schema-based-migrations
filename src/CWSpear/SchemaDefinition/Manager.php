@@ -5,6 +5,7 @@ namespace CWSpear\SchemaDefinition;
 use CWSpear\SchemaDefinition\Db\AdapterInterface;
 use CWSpear\SchemaDefinition\Db\MysqlAdapter;
 use CWSpear\SchemaDefinition\Differ\DifferInterface;
+use CWSpear\SchemaDefinition\Exception\FileNotFoundException;
 use CWSpear\SchemaDefinition\Exception\InvalidConfigException;
 use CWSpear\SchemaDefinition\Exception\UnsupportedAdapterException;
 use CWSpear\SchemaDefinition\Exception\UnsupportedFormatException;
@@ -13,7 +14,10 @@ use CWSpear\SchemaDefinition\Filesystem\Filesystem;
 use CWSpear\SchemaDefinition\Filesystem\FilesystemInterface;
 use CWSpear\SchemaDefinition\Generator\LaravelGenerator;
 use CWSpear\SchemaDefinition\Parser\JsonParser;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Parser as YamlParser;
+use Symfony\Component\Yaml\Yaml;
 
 class Manager
 {
@@ -61,6 +65,20 @@ class Manager
         return new static($adapter, $file);
     }
 
+    public static function fromInput(InputInterface $input, YamlParser $yaml = null)
+    {
+        $configPath = $input->getOption('config');
+        $contents   = @file_get_contents($configPath);
+
+        if ($contents === false) {
+            throw new FileNotFoundException("Config file \"{$configPath}\" not found.");
+        }
+
+        $config = is_null($yaml) ? Yaml::parse($contents) : $yaml->parse($contents);
+
+        return Manager::fromConfig($config);
+    }
+
     public static function assertValidConfig($config)
     {
         $errors = [];
@@ -87,12 +105,13 @@ class Manager
             throw new InvalidConfigException(implode("\n ", $errors));
         }
     }
-    
-    public static function splitTableList($tableStr) {
+
+    public static function splitTableList($tableStr)
+    {
         if (is_null($tableStr)) {
             return null;
         }
-        
+
         return preg_split('/ *, */', $tableStr);
     }
 
