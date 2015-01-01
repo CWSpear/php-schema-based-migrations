@@ -3,11 +3,10 @@
 namespace CWSpear\SchemaDefinition;
 
 use CWSpear\SchemaDefinition\Db\AdapterInterface;
-use CWSpear\SchemaDefinition\Db\MysqlAdapter;
+use CWSpear\SchemaDefinition\Db\Adapter;
 use CWSpear\SchemaDefinition\Differ\DifferInterface;
 use CWSpear\SchemaDefinition\Exception\FileNotFoundException;
 use CWSpear\SchemaDefinition\Exception\InvalidConfigException;
-use CWSpear\SchemaDefinition\Exception\UnsupportedAdapterException;
 use CWSpear\SchemaDefinition\Exception\UnsupportedFormatException;
 use CWSpear\SchemaDefinition\Exception\UnsupportedGeneratorException;
 use CWSpear\SchemaDefinition\Filesystem\Filesystem;
@@ -33,15 +32,6 @@ class Manager
     {
         self::assertValidConfig($config);
 
-        switch (strtolower($config['adapter'])) {
-            case 'mysql':
-                $adapter = new MysqlAdapter($config['host'], $config['username'], $config['password'], $config['database']);
-                break;
-
-            default:
-                throw new UnsupportedAdapterException("\"{$config['adapter']}\" DB Adapter is not (yet?) supported");
-        }
-
         switch (strtolower($config['format'])) {
             case 'json':
                 $parser = new JsonParser;
@@ -60,7 +50,8 @@ class Manager
                 throw new UnsupportedGeneratorException("\"{$config['generator']}\" generator is not (yet?) supported");
         }
 
-        $file = new Filesystem($parser, $generator, $config['schemas'], $config['migrations']);
+        $adapter = new Adapter($config['host'], $config['username'], $config['password'], $config['database'], $config['adapter']);
+        $file    = new Filesystem($parser, $generator, $config['schemas'], $config['migrations']);
 
         return new static($adapter, $file);
     }
@@ -122,7 +113,7 @@ class Manager
 
     public function getFields($table)
     {
-        return $this->adapter->getFields($table);
+        return $this->adapter->getColumns($table);
     }
 
     public function getIndexes($table)

@@ -2,6 +2,9 @@
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
 
 class Adapter implements AdapterInterface
 {
@@ -40,59 +43,50 @@ class Adapter implements AdapterInterface
      */
     public function getTables()
     {
-        $tables = $this->schema->listTables();
-        return array_map(function (\Doctrine\DBAL\Schema\Table $table) {
-            $table->getName();
-        }, $tables);
+        return $this->schema->listTableNames();
     }
-
-    //'limit'      => null,
-    //'null'       => false,
-    //'default'    => null,
-    //'identity'   => false,
-    //'after'      => null,
-    //'update'     => null,
-    //'precision'  => null,
-    //'scale'      => null,
-    //'comment'    => null,
-    //'signed'     => true,
-    //'properties' => [],
 
     /**
      * {@inheritdoc}
      */
-    public function getFields($table)
+    public function getColumns($tableName)
     {
-        $columns = array_map(function ($row) {
-            $data = $this->extractData($row['Type']);
+        $cols = array_map(function (Column $column) {
+            $col = [
+                'name'      => $column->getName(),
+                'type'      => $column->getType()->getName(),
+                'identity'  => $column->getAutoincrement() ?: null,
+                'nullable'  => !$column->getNotnull() ?: null,
+                'unsigned'  => $column->getUnsigned() ?: null,
+                'length'    => $column->getLength(),
+                'scale'     => $column->getScale(),
+                'precision' => $column->getPrecision(),
+                'default'   => $column->getDefault(),
+                'comment'   => $column->getComment(),
+                'update'    => null, // hmmm
+                'after'     => null, // irrelevant for export
+            ];
 
-            return array_filter([
-                'name'      => $row['Field'] ?: null,
-                'type'      => $data['type'] ?: null,
-                'limit'     => isset($data['limit']) ? intval($data['limit']) : null,
-                'default'   => $row['Default'] ?: null,
-                'nullable'  => $row['Null'] === 'YES' ?: null,
-                'identity'  => $row['Key'] === 'PRI' ?: null,
-                'scale'     => isset($data['scale']) ? intval($data['scale']) : null,
-                'precision' => isset($data['precision']) ? intval($data['precision']) : null,
-                'comment'   => $row['Comment'] ?: null,
-                'unsigned'  => $data['unsigned'] ?: null,
-                'update'    => null, // NYI
-                'after'     => null, // after is not taken into consideration on an export and is not relevant
-            ], function ($item) {
+            // dbal has defaults for precision and scale for EVERY type...
+            if (!in_array($col['type'], ['float', 'decimal'])) {
+                unset($col['precision'], $col['scale']);
+            }
+
+            // remove null values as they are "defaults"
+            return array_filter($col, function ($item) {
                 return !is_null($item);
             });
-        }, $rows);
+        }, $this->schema->listTableColumns($tableName));
 
-        $fields = [];
+        $columns = [];
 
-        foreach ($columns as $column) {
-            $name = $column['name'];
-            unset($column['name']);
-            $fields[$name] = $column;
+        foreach ($cols as $col) {
+            $name = $col['name'];
+            unset($col['name']);
+            $columns[$name] = $col;
         }
 
-        return $fields;
+        return $columns;
     }
 
     /**
@@ -100,18 +94,19 @@ class Adapter implements AdapterInterface
      */
     public function getIndexes($table)
     {
-        $rows = $this->query("SHOW INDEXES FROM `{$table}`");
+        $rows = $this->schema->listTableIndexes($table);
 
-        $indexes = [];
-        foreach ($rows as $row) {
-            if (!isset($indexes[$row['Key_name']])) {
-                $indexes[$row['Key_name']] = ['columns' => []];
+        return array_map(function (Index $index) {
+            $row = ['columns' => $index->getColumns()];
+            if ($index->isPrimary()) {
+                $row['primary'] = true;
             }
-            $indexes[$row['Key_name']]['columns'][] = strtolower($row['Column_name']);
-            $indexes[$row['Key_name']]['unique']    = !$row['Non_unique'];
-        }
+            if ($index->isUnique()) {
+                $row['unique'] = true;
+            }
 
-        return array_values($indexes);
+            return $row;
+        }, $rows);
     }
 
     /**
@@ -119,19 +114,16 @@ class Adapter implements AdapterInterface
      */
     public function getForeignKeys($table)
     {
-        $sql = 'SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ';
-        $sql .= 'FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND TABLE_NAME = ';
-        $sql .= "'{$table}'";
+        $rows = $this->schema->listTableForeignKeys($table);
 
-        $rows = $this->query($sql);
-
-        return array_map(function ($row) {
-            return [
-                'column'         => $row['COLUMN_NAME'],
-                'foreign_table'  => $row['TABLE_NAME'],
-                'foreign_column' => $row['REFERENCED_COLUMN_NAME'],
+        return array_reduce($rows, function ($result, ForeignKeyConstraint $row) {
+            $result[$row->getName()] = [
+                'columns'         => $row->getColumns(),
+                'foreign_table'   => $row->getForeignTableName(),
+                'foreign_columns' => $row->getForeignColumns(),
             ];
-        }, $rows);
+            return $result;
+        }, []);
     }
 
     /**
@@ -139,8 +131,9 @@ class Adapter implements AdapterInterface
      */
     public function hasColumn($column, $table)
     {
-        // TODO: caching?
-        return in_array($column, array_keys($this->getFields($table)));
+        $table = $this->schema->listTableDetails($table);
+
+        return $table->hasColumn($column);
     }
 
     /**
@@ -148,63 +141,6 @@ class Adapter implements AdapterInterface
      */
     public function hasTable($table)
     {
-        // TODO: caching?
-        return in_array($table, $this->getTables());
-    }
-
-    /**
-     * Tbe Type column in SHOW COLUMNS has info on a number
-     * of options we use and this method extracts those to an array
-     *
-     * @param string $typeCol
-     * @return array
-     */
-    protected function extractData($typeCol)
-    {
-        preg_match('/([a-z]+)\(?(\d+) ?,?(\d+)?\)? ?(unsigned)?/', $typeCol, $matches);
-        $type     = isset($matches[1]) ? $matches[1] : $typeCol;
-        $num1     = isset($matches[2]) ? $matches[2] : null;
-        $num2     = isset($matches[3]) ? $matches[3] : null;
-        $unsigned = isset($matches[4]) ? $matches[4] : null;
-
-        $ret = ['type' => $this->normalizeFieldType($type)];
-
-        if ($num2) {
-            if (in_array($type, ['double', 'float', 'decimal', 'numeric'])) {
-                $ret['limit']     = null;
-                $ret['precision'] = $num2;
-                $ret['scale']     = $num1;
-            }
-        } else {
-            $ret['limit']     = $num1 ?: null;
-            $ret['precision'] = null;
-            $ret['scale']     = null;
-        }
-
-        $ret['unsigned'] = $unsigned ?: null;
-
-        return $ret;
-    }
-
-    /**
-     * Some columns have a different name than the ones we use.
-     * This method normalizes those names (i.e. int -> integer)
-     *
-     * @param string $type
-     * @return string
-     */
-    protected function normalizeFieldType($type)
-    {
-        if (preg_match(' /int$/', $type)) {
-            $type .= 'eger';
-
-            return $type;
-        }
-
-        if ($type === 'varchar') {
-            return 'string';
-        }
-
-        return $type;
+        return $this->schema->tablesExist($table);
     }
 }

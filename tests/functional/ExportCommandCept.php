@@ -3,7 +3,7 @@ $I = new FunctionalTester($scenario);
 $I->wantTo('export existing schema from the database to a file');
 
 // need --no-ansi to be able to see output!
-$I->runShellCommand('commandthatmustnotbenamed export -c ./tests/_fixtures/schema.yml --no-ansi');
+$I->runShellCommand('php commandthatmustnotbenamed export -c ./tests/_fixtures/schema.yml --no-ansi');
 
 $I->seeInShellOutput('[diverse] successfully exported');
 $I->seeInShellOutput('[second] successfully exported');

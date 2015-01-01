@@ -10,12 +10,12 @@ class AdapterSpec extends ObjectBehavior
 {
     function let()
     {
-        $this->beConstructedWith('127.0.0.1', 'root', 'root', 'schema_test');
+        $this->beConstructedWith('127.0.0.1', 'root', 'root', 'schema_test', 'pdo_mysql');
     }
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('CWSpear\SchemaDefinition\Db\MysqlAdapter');
+        $this->shouldHaveType('CWSpear\SchemaDefinition\Db\Adapter');
     }
 
     function it_should_get_a_list_of_tables()
@@ -25,42 +25,39 @@ class AdapterSpec extends ObjectBehavior
 
     function it_should_get_details_about_columns_in_a_table()
     {
-        $this->getFields('diverse')->shouldReturn([
-            'id' => [
+        $this->getColumns('diverse')->shouldReturn([
+            'id'                      => [
                 'type'     => 'integer',
-                'limit'    => 10,
                 'identity' => true,
-                'unsigned' => 'unsigned',
+                'unsigned' => true,
             ],
-            'second_id' => [
+            'second_id'               => [
                 'type'     => 'integer',
-                'limit'    => 10,
-                'unsigned' => 'unsigned',
+                'unsigned' => true,
             ],
             'signed_int_null_default' => [
                 'type'     => 'integer',
-                'limit'    => 5,
+                'nullable' => true,
                 'default'  => '3',
-                'nullable' => true,
             ],
-            '100_char' => [
-                'type'  => 'string',
-                'limit' => 100,
+            '100_char'                => [
+                'type'   => 'string',
+                'length' => 100,
             ],
-            '200_char_null' => [
+            '200_char_null'           => [
                 'type'     => 'string',
-                'limit'    => 200,
                 'nullable' => true,
+                'length'   => 200,
             ],
-            'comment' => [
-                'type'    => 'timestamp',
+            'comment'                 => [
+                'type'    => 'datetime',
                 'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'Time is fleeting',
             ],
-            'float' => [
+            'float'                   => [
                 'type'      => 'float',
-                'scale'     => 12,
-                'precision' => 10,
+                'scale'     => 10,
+                'precision' => 12,
             ]
         ]);
     }
@@ -68,32 +65,33 @@ class AdapterSpec extends ObjectBehavior
     function it_should_get_a_list_of_indexes()
     {
         $this->getIndexes('second')->shouldReturn([
-            [
+            'primary' => [
                 'columns' => ['id'],
-                'unique' => true,
-            ], [
+                'primary' => true,
+                'unique'  => true,
+            ], 'id_two' => [
                 'columns' => ['id_two'],
-                'unique' => true,
-            ], [
+                'unique'  => true,
+            ], 'id_three_id_four' => [
                 'columns' => ['id_three', 'id_four'],
-                'unique' => true,
-            ], [
+                'unique'  => true,
+            ], 'id_five' => [
                 'columns' => ['id_five'],
-                'unique' => false,
-            ], [
+            ], 'id_six_id_seven' => [
                 'columns' => ['id_six', 'id_seven'],
-                'unique' => false,
             ]
         ]);
     }
 
     function it_should_get_a_list_of_foreign_keys()
     {
-        $this->getForeignKeys('diverse')->shouldReturn([[
-            'column'         => 'second_id',
-            'foreign_table'  => 'diverse',
-            'foreign_column' => 'id',
-        ]]);
+        $this->getForeignKeys('diverse')->shouldReturn([
+            'second_second_id_foreign' => [
+                'columns'         => ['second_id'],
+                'foreign_table'   => 'second',
+                'foreign_columns' => ['id'],
+            ]
+        ]);
     }
 
     function it_should_determine_if_it_has_a_particular_table_or_not()
@@ -106,24 +104,5 @@ class AdapterSpec extends ObjectBehavior
     {
         $this->hasTable('table')->shouldReturn(false);
         $this->hasTable('diverse')->shouldReturn(true);
-    }
-
-    function it_should_handle_bad_queries()
-    {
-        $this->shouldThrow('\PDOException')->duringQuery('BANANAS ARE GOOD');
-    }
-
-    function it_should_handle_bindings(\PDO $db, \PDOStatement $statement)
-    {
-        $sql = 'SELECT * FROM diverse WHERE id = ?';
-        $bindings = [1];
-
-        $this->db = $db;
-
-        $db->prepare($sql)->shouldBeCalled()->willReturn($statement);
-        $statement->execute($bindings)->shouldBeCalled()->willReturn($statement);
-        $statement->fetchAll()->shouldBeCalled();
-
-        $this->query($sql, $bindings);
     }
 }

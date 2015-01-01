@@ -16,7 +16,7 @@ CREATE TABLE `diverse` (
   `float` float(12,10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `second_id` (`second_id`),
-  CONSTRAINT `diverse_ibfk_2` FOREIGN KEY (`second_id`) REFERENCES `second` (`id`)
+  CONSTRAINT `second_second_id_foreign` FOREIGN KEY (`second_id`) REFERENCES `second` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='second';
 
 

@@ -9,8 +9,9 @@ interface AdapterInterface
      * @param string $username
      * @param string $password
      * @param string $database
+     * @param string $driver
      */
-    public function __construct($host, $username, $password, $database);
+    public function __construct($host, $username, $password, $database, $driver);
 
     /**
      * Gets a list of the names of the tables in the configured DB.
@@ -20,12 +21,12 @@ interface AdapterInterface
     public function getTables();
 
     /**
-     * Get a list of fields and properties from a table.
+     * Get a list of columns and column properties from a table.
      *
      * @param string $table
      * @return array
      */
-    public function getFields($table);
+    public function getColumns($table);
 
     /**
      * Get a list of indexes from a table;

@@ -2,60 +2,61 @@
     "fields": {
         "id": {
             "type": "integer",
-            "limit": 10,
             "identity": true,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "second_id": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "signed_int_null_default": {
             "type": "integer",
-            "limit": 5,
-            "default": "3",
-            "nullable": true
+            "nullable": true,
+            "default": "3"
         },
         "100_char": {
             "type": "string",
-            "limit": 100
+            "length": 100
         },
         "200_char_null": {
             "type": "string",
-            "limit": 200,
-            "nullable": true
+            "nullable": true,
+            "length": 200
         },
         "comment": {
-            "type": "timestamp",
+            "type": "datetime",
             "default": "CURRENT_TIMESTAMP",
             "comment": "Time is fleeting"
         },
         "float": {
             "type": "float",
-            "scale": 12,
-            "precision": 10
+            "scale": 10,
+            "precision": 12
         }
     },
-    "foreignKeys": [
-        {
-            "column": "second_id",
-            "foreign_table": "diverse",
-            "foreign_column": "id"
-        }
-    ],
-    "indexes": [
-        {
-            "columns": [
-                "id"
-            ],
-            "unique": true
-        },
-        {
+    "foreignKeys": {
+        "second_second_id_foreign": {
             "columns": [
                 "second_id"
             ],
-            "unique": false
+            "foreign_table": "second",
+            "foreign_columns": [
+                "id"
+            ]
         }
-    ]
+    },
+    "indexes": {
+        "primary": {
+            "columns": [
+                "id"
+            ],
+            "primary": true,
+            "unique": true
+        },
+        "second_id": {
+            "columns": [
+                "second_id"
+            ]
+        }
+    }
 }

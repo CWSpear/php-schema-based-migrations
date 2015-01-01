@@ -18,3 +18,4 @@ function deleteFilesInDir($dir)
 }
 
 deleteFilesInDir('./tests/_fixtures/actual');
+

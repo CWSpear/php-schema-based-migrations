@@ -1,8 +1,12 @@
+suites:
+    spec_suite:
+        spec_path: tests
 extensions:
     - PhpSpec\NyanFormattersExtension\Extension
     - PhpSpec\Extension\CodeCoverageExtension
 formatter.name: nyan.crab
 code_coverage:
+    output: tests/coverage
     blacklist:
         - src/CWSpear/SchemaDefinition/Console
         - src/CWSpear/SchemaDefinition/Exception

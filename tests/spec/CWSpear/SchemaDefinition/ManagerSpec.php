@@ -16,7 +16,7 @@ use Symfony\Component\Yaml\Parser as YamlParser;
 class ManagerSpec extends ObjectBehavior
 {
     protected $baseConfig = [
-        'adapter'    => 'mysql',
+        'adapter'    => 'pdo_mysql',
         'host'       => '127.0.0.1',
         'username'   => 'root',
         'password'   => 'root',
@@ -70,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
     function it_should_throw_when_using_invalid_options()
     {
         $config = array_merge($this->baseConfig, ['adapter' => 'banana']);
-        $this->shouldThrow('CWSpear\SchemaDefinition\Exception\UnsupportedAdapterException')->duringFromConfig($config);
+        $this->shouldThrow('Doctrine\DBAL\DBALException')->duringFromConfig($config);
 
         $config = array_merge($this->baseConfig, ['format' => 'banana']);
         $this->shouldThrow('CWSpear\SchemaDefinition\Exception\UnsupportedFormatException')->duringFromConfig($config);
@@ -99,7 +99,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $fields = ['fields'];
 
-        $adapter->getFields('users')->shouldBeCalled()->willReturn($fields);
+        $adapter->getColumns('users')->shouldBeCalled()->willReturn($fields);
 
         $this->getFields('users')->shouldReturn($fields);
     }
@@ -130,7 +130,7 @@ class ManagerSpec extends ObjectBehavior
             'indexes'     => 'indexes',
         ];
 
-        $adapter->getFields('table')->willReturn('fields');
+        $adapter->getColumns('table')->willReturn('fields');
         $adapter->getForeignKeys('table')->willReturn('foreignKeys');
         $adapter->getIndexes('table')->willReturn('indexes');
 
@@ -173,8 +173,8 @@ class ManagerSpec extends ObjectBehavior
     function it_should_export_all_schema_with_no_table_param(AdapterInterface $adapter, OutputInterface $output)
     {
         $adapter->getTables()->shouldBeCalled()->willReturn(['one', 'two']);
-        $adapter->getFields('one')->shouldBeCalled();
-        $adapter->getFields('two')->shouldBeCalled();
+        $adapter->getColumns('one')->shouldBeCalled();
+        $adapter->getColumns('two')->shouldBeCalled();
         $adapter->getIndexes('one')->shouldBeCalled();
         $adapter->getIndexes('two')->shouldBeCalled();
         $adapter->getForeignKeys('one')->shouldBeCalled();

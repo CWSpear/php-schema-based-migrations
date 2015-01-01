@@ -2,74 +2,66 @@
     "fields": {
         "id": {
             "type": "integer",
-            "limit": 10,
             "identity": true,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_two": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_three": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_four": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_five": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_six": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         },
         "id_seven": {
             "type": "integer",
-            "limit": 10,
-            "unsigned": "unsigned"
+            "unsigned": true
         }
     },
     "foreignKeys": [],
-    "indexes": [
-        {
+    "indexes": {
+        "primary": {
             "columns": [
                 "id"
             ],
+            "primary": true,
             "unique": true
         },
-        {
+        "id_two": {
             "columns": [
                 "id_two"
             ],
             "unique": true
         },
-        {
+        "id_three_id_four": {
             "columns": [
                 "id_three",
                 "id_four"
             ],
             "unique": true
         },
-        {
+        "id_five": {
             "columns": [
                 "id_five"
-            ],
-            "unique": false
+            ]
         },
-        {
+        "id_six_id_seven": {
             "columns": [
                 "id_six",
                 "id_seven"
-            ],
-            "unique": false
+            ]
         }
-    ]
+    }
 }
