@@ -1,20 +1,38 @@
 <?php namespace CWSpear\SchemaDefinition\Db;
 
-use PDO;
+use Doctrine\DBAL\Configuration;
+use Doctrine\DBAL\DriverManager;
 
-class MysqlAdapter extends AbstractAdapter implements AdapterInterface
+class Adapter implements AdapterInterface
 {
     /**
-     * @var PDO
+     * @var \Doctrine\DBAL\Connection;
      */
-    public $db;
+    public $conn;
+
+    /**
+     * @var \Doctrine\DBAL\Schema\AbstractSchemaManager;
+     */
+    public $schema;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct($host, $username, $password, $database)
+    public function __construct($host, $username, $password, $database, $driver)
     {
-        $this->db = new PDO("mysql:dbname={$database};host={$host}", $username, $password);
+        $config = new Configuration;
+
+        $connectionParams = [
+            'host'     => $host,
+            'user'     => $username,
+            'password' => $password,
+            'dbname'   => $database,
+            'driver'   => $driver,
+        ];
+
+        $this->conn = DriverManager::getConnection($connectionParams, $config);
+
+        $this->schema = $this->conn->getSchemaManager();
     }
 
     /**
@@ -22,11 +40,10 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getTables()
     {
-        $rows = $this->query('SHOW TABLES');
-
-        return array_map(function ($row) {
-            return $row[0];
-        }, $rows);
+        $tables = $this->schema->listTables();
+        return array_map(function (\Doctrine\DBAL\Schema\Table $table) {
+            $table->getName();
+        }, $tables);
     }
 
     //'limit'      => null,
@@ -46,8 +63,6 @@ class MysqlAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getFields($table)
     {
-        $rows = $this->query("SHOW FULL COLUMNS FROM `{$table}`");
-
         $columns = array_map(function ($row) {
             $data = $this->extractData($row['Type']);
 

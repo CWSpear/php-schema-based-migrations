@@ -6,7 +6,7 @@ use Prophecy\Argument;
 /**
  * @mixin MysqlAdapter
  */
-class MysqlAdapterSpec extends ObjectBehavior
+class AdapterSpec extends ObjectBehavior
 {
     function let()
     {
